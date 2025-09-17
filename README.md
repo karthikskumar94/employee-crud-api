@@ -199,3 +199,125 @@ The application is configured in `application.yml`:
 - JPA/Hibernate configuration
 - Server port (8080)
 - Logging levels
+
+Spring Security Integration
+✅ Overview
+
+This project integrates Spring Security into a Spring Boot application to secure the API endpoints. The configuration uses in-memory authentication with predefined users and roles.
+
+✅ Dependencies
+
+The following dependency is added to build.gradle:
+
+dependencies {
+implementation 'org.springframework.boot:spring-boot-starter-security'
+}
+
+
+This ensures Spring Security is enabled for authentication and authorization.
+
+## Security Configuration
+
+A SecurityConfig class is created to define the security rules:
+
+@Configuration
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/employees/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
+            )
+            .formLogin(Customizer.withDefaults())
+            .httpBasic(Customizer.withDefaults());
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+
+
+A UserDetailsService bean is configured in UserConfig.java:
+
+@Configuration
+public class UserConfig {
+
+    @Bean
+    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+        manager.createUser(User.withUsername("admin")
+                .password(passwordEncoder.encode("adminpass"))
+                .roles("ADMIN")
+                .build());
+        manager.createUser(User.withUsername("user")
+                .password(passwordEncoder.encode("userpass"))
+                .roles("USER")
+                .build());
+        return manager;
+    }
+}
+
+✅ Users and Roles
+Username	Password	Roles
+admin	adminpass	ADMIN
+user	userpass	USER
+
+Only users with ADMIN role can access /api/employees/**.
+
+Other requests require authentication but are accessible depending on role permissions.
+
+✅ Running the Application
+
+Build the project:
+
+./gradlew clean build
+
+
+Run the application:
+
+./gradlew bootRun
+
+
+The application will start on http://localhost:8080.
+
+✅ Testing the Endpoints
+Using a Browser:
+
+Visit http://localhost:8080/api/employees.
+
+Enter the username and password when prompted.
+
+Use admin / adminpass to access employee data.
+
+Using user / userpass will result in a "403 Forbidden" error.
+
+Using Postman or curl:
+
+Request URL: http://localhost:8080/api/employees
+
+Method: GET
+
+Authentication: Basic Auth
+
+Example curl command:
+
+curl -u admin:adminpass http://localhost:8080/api/employees
+
+
+You should see the employee data if the credentials are correct.
+
+✅ Notes
+
+CSRF protection is disabled for development simplicity.
+
+Default login and HTTP Basic authentication are used.
+
+This setup uses in-memory authentication and is intended for development and demonstration purposes.
+
+For production, you should implement database-backed authentication and stronger security controls.
