@@ -1,0 +1,309 @@
+﻿{
+	"info": {
+		"_postman_id": "f4b004ba-5c0a-489e-b1ff-4fb936c64467-auth",
+		"name": "employee-crud-api-with-auth",
+		"description": "Employee CRUD API with JWT Bearer Token Authentication",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13378962"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// This script runs before each request to check if we have a valid token",
+					"if (!pm.collectionVariables.get('jwt_token')) {",
+					"    console.log('No JWT token found. Please login first using the Login endpoint.');",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Store the JWT token from response",
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.token) {",
+									"        pm.collectionVariables.set('jwt_token', responseJson.token);",
+									"        console.log('JWT token saved successfully!');",
+									"    }",
+									"} else {",
+									"    console.log('Login failed');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Get all employees",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/employees",
+					"host": ["{{base_url}}"],
+					"path": ["api", "employees"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get employee by ID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/employees/2",
+					"host": ["{{base_url}}"],
+					"path": ["api", "employees", "2"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get employee by Email",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/employees/email/john.doe@example.com",
+					"host": ["{{base_url}}"],
+					"path": ["api", "employees", "email", "john.doe@example.com"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create employee",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"George Gregor\",\n  \"email\": \"george.gregor@example.com\",\n  \"department\": \"Financing\",\n  \"salary\": 95000.00\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/employees",
+					"host": ["{{base_url}}"],
+					"path": ["api", "employees"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get employees by department",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/employees/department/Engineering",
+					"host": ["{{base_url}}"],
+					"path": ["api", "employees", "department", "Engineering"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search employee by name",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/employees/search?name=George",
+					"host": ["{{base_url}}"],
+					"path": ["api", "employees", "search"],
+					"query": [
+						{
+							"key": "name",
+							"value": "George"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update employee",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"George Gregor Updated\",\n  \"email\": \"george.gregor.updated@example.com\",\n  \"department\": \"Gardening\",\n  \"salary\": 95000.00\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/employees/6",
+					"host": ["{{base_url}}"],
+					"path": ["api", "employees", "6"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete employee",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/employees/6",
+					"host": ["{{base_url}}"],
+					"path": ["api", "employees", "6"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get employee count",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/employees/count",
+					"host": ["{{base_url}}"],
+					"path": ["api", "employees", "count"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Application health check",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/employees/health",
+					"host": ["{{base_url}}"],
+					"path": ["api", "employees", "health"]
+				}
+			},
+			"response": []
+		}
+	]
+}
+

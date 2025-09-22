@@ -1,0 +1,712 @@
+﻿{
+	"info": {
+		"_postman_id": "role-based-auth-collection",
+		"name": "Employee CRUD API - Role-Based Authentication",
+		"description": "Complete testing collection for role-based authentication with different user roles",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Check if token exists and display current user info",
+					"const token = pm.collectionVariables.get('jwt_token');",
+					"const currentUser = pm.collectionVariables.get('current_user');",
+					"const currentRoles = pm.collectionVariables.get('current_roles');",
+					"",
+					"if (token && currentUser) {",
+					"    console.log('Current User: ' + currentUser);",
+					"    console.log('Current Roles: ' + currentRoles);",
+					"} else {",
+					"    console.log('No JWT token found. Please login first!');",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "jwt_token",
+			"value": ""
+		},
+		{
+			"key": "current_user",
+			"value": ""
+		},
+		{
+			"key": "current_roles",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication Tests",
+			"item": [
+				{
+					"name": "Login as ADMIN",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    pm.collectionVariables.set('jwt_token', responseJson.token);",
+									"    pm.collectionVariables.set('current_user', responseJson.username);",
+									"    pm.collectionVariables.set('current_roles', JSON.stringify(responseJson.roles));",
+									"    console.log('Admin login successful!');",
+									"    console.log('Full access granted - can do everything');",
+									"} else {",
+									"    console.log('Admin login failed');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login as HR Manager",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    pm.collectionVariables.set('jwt_token', responseJson.token);",
+									"    pm.collectionVariables.set('current_user', responseJson.username);",
+									"    pm.collectionVariables.set('current_roles', JSON.stringify(responseJson.roles));",
+									"    console.log('HR Manager login successful!');",
+									"    console.log('Can: Create/Read/Update employees (NO DELETE)');",
+									"} else {",
+									"    console.log('HR Manager login failed');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"hr_manager\",\n  \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login as Manager",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    pm.collectionVariables.set('jwt_token', responseJson.token);",
+									"    pm.collectionVariables.set('current_user', responseJson.username);",
+									"    pm.collectionVariables.set('current_roles', JSON.stringify(responseJson.roles));",
+									"    console.log('Manager login successful!');",
+									"    console.log('Can: Read employee data, search (NO CREATE/UPDATE/DELETE)');",
+									"} else {",
+									"    console.log('Manager login failed');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"manager\",\n  \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login as Employee",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    pm.collectionVariables.set('jwt_token', responseJson.token);",
+									"    pm.collectionVariables.set('current_user', responseJson.username);",
+									"    pm.collectionVariables.set('current_roles', JSON.stringify(responseJson.roles));",
+									"    console.log('Employee login successful!');",
+									"    console.log('Can: View individual records, health check (LIMITED ACCESS)');",
+									"} else {",
+									"    console.log('Employee login failed');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"employee\",\n  \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login as HR Admin (Multi-Role)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    pm.collectionVariables.set('jwt_token', responseJson.token);",
+									"    pm.collectionVariables.set('current_user', responseJson.username);",
+									"    pm.collectionVariables.set('current_roles', JSON.stringify(responseJson.roles));",
+									"    console.log('HR Admin login successful!');",
+									"    console.log('Has BOTH HR and ADMIN roles - Full Access!');",
+									"} else {",
+									"    console.log('HR Admin login failed');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"hr_admin\",\n  \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Read Operations (Different Access Levels)",
+			"item": [
+				{
+					"name": "Get All Employees (ADMIN/HR/MANAGER only)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const currentRoles = pm.collectionVariables.get('current_roles');",
+									"if (pm.response.code === 200) {",
+									"    console.log('Access granted to view all employees');",
+									"    console.log('Current roles: ' + currentRoles);",
+									"} else if (pm.response.code === 403) {",
+									"    console.log('Access denied - insufficient privileges');",
+									"    console.log('Current roles: ' + currentRoles);",
+									"    console.log('Required: ADMIN, HR, or MANAGER role');",
+									"} else if (pm.response.code === 401) {",
+									"    console.log('Please login first!');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/employees",
+							"host": ["{{base_url}}"],
+							"path": ["api", "employees"]
+						}
+					}
+				},
+				{
+					"name": "Get Employee by ID (ALL ROLES can access)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    console.log('Access granted - all authenticated users can view individual records');",
+									"} else if (pm.response.code === 403) {",
+									"    console.log('Unexpected access denial');",
+									"} else if (pm.response.code === 404) {",
+									"    console.log('Employee not found');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/employees/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "employees", "1"]
+						}
+					}
+				},
+				{
+					"name": "Search Employees (ADMIN/HR/MANAGER only)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const currentRoles = pm.collectionVariables.get('current_roles');",
+									"if (pm.response.code === 200) {",
+									"    console.log('Search access granted');",
+									"} else if (pm.response.code === 403) {",
+									"    console.log('Search denied - insufficient privileges');",
+									"    console.log('EMPLOYEE role cannot search all employees');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/employees/search?name=John",
+							"host": ["{{base_url}}"],
+							"path": ["api", "employees", "search"],
+							"query": [
+								{
+									"key": "name",
+									"value": "John"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Create Operations (ADMIN/HR only)",
+			"item": [
+				{
+					"name": "Create Employee (ADMIN/HR only)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const currentRoles = pm.collectionVariables.get('current_roles');",
+									"if (pm.response.code === 201) {",
+									"    console.log('Employee created successfully');",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('created_employee_id', response.id);",
+									"} else if (pm.response.code === 403) {",
+									"    console.log('Creation denied - insufficient privileges');",
+									"    console.log('Only ADMIN and HR can create employees');",
+									"    console.log('Your roles: ' + currentRoles);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test User Role-Based\",\n  \"email\": \"test.role@example.com\",\n  \"department\": \"Testing\",\n  \"salary\": 55000.00\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/employees",
+							"host": ["{{base_url}}"],
+							"path": ["api", "employees"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Update Operations (ADMIN/HR only)",
+			"item": [
+				{
+					"name": "Update Employee (ADMIN/HR only)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const currentRoles = pm.collectionVariables.get('current_roles');",
+									"if (pm.response.code === 200) {",
+									"    console.log('Employee updated successfully');",
+									"} else if (pm.response.code === 403) {",
+									"    console.log('Update denied - insufficient privileges');",
+									"    console.log('Only ADMIN and HR can update employees');",
+									"    console.log('Your roles: ' + currentRoles);",
+									"} else if (pm.response.code === 404) {",
+									"    console.log('❌ Employee not found');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Test User\",\n  \"email\": \"updated.test@example.com\",\n  \"department\": \"Updated Department\",\n  \"salary\": 60000.00\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/employees/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "employees", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Delete Operations (ADMIN only)",
+			"item": [
+				{
+					"name": "Delete Employee (ADMIN ONLY)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const currentRoles = pm.collectionVariables.get('current_roles');",
+									"const currentUser = pm.collectionVariables.get('current_user');",
+									"if (pm.response.code === 200) {",
+									"    console.log('Employee deleted successfully');",
+									"    console.log('Only ADMIN role can delete employees');",
+									"} else if (pm.response.code === 403) {",
+									"    console.log('DELETE DENIED - Only ADMIN can delete employees');",
+									"    console.log('Current user: ' + currentUser);",
+									"    console.log('Your roles: ' + currentRoles);",
+									"    console.log('Even HR cannot delete employees - only ADMIN!');",
+									"} else if (pm.response.code === 404) {",
+									"    console.log('Employee not found (may already be deleted)');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/employees/5",
+							"host": ["{{base_url}}"],
+							"path": ["api", "employees", "5"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Statistics & Utility (Restricted Access)",
+			"item": [
+				{
+					"name": "Get Employee Count (ADMIN/HR only)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const currentRoles = pm.collectionVariables.get('current_roles');",
+									"if (pm.response.code === 200) {",
+									"    console.log('Statistics access granted');",
+									"    console.log('Only ADMIN and HR can view counts');",
+									"} else if (pm.response.code === 403) {",
+									"    console.log('Statistics denied - insufficient privileges');",
+									"    console.log('Your roles: ' + currentRoles);",
+									"    console.log('MANAGER and EMPLOYEE cannot view statistics');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/employees/count",
+							"host": ["{{base_url}}"],
+							"path": ["api", "employees", "count"]
+						}
+					}
+				},
+				{
+					"name": "Health Check (ALL ROLES)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    console.log('Health check accessible to all authenticated users');",
+									"} else {",
+									"    console.log('Health check failed');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/employees/health",
+							"host": ["{{base_url}}"],
+							"path": ["api", "employees", "health"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Permission Testing Scenarios",
+			"item": [
+				{
+					"name": "Test Without Token (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 401) {",
+									"    console.log('Correctly blocked - no authentication token');",
+									"} else {",
+									"    console.log('Security issue - request should be blocked!');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/employees",
+							"host": ["{{base_url}}"],
+							"path": ["api", "employees"]
+						}
+					}
+				},
+				{
+					"name": "Test with Invalid Token (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 401) {",
+									"    console.log('Correctly blocked - invalid token');",
+									"} else {",
+									"    console.log('Security issue - invalid token should be rejected!');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer invalid_token_here"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/employees",
+							"host": ["{{base_url}}"],
+							"path": ["api", "employees"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Role Comparison Tests",
+			"item": [
+				{
+					"name": "Compare Access Levels",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('ROLE ACCESS COMPARISON:');",
+									"console.log('');",
+									"console.log('ADMIN: Full access (CRUD + statistics)');",
+									"console.log('HR: Create/Read/Update + statistics (NO DELETE)');",
+									"console.log('MANAGER: Read operations only (NO CRUD/statistics)');",
+									"console.log('EMPLOYEE: Individual records + health only');",
+									"console.log('');",
+									"console.log('Test different endpoints with different user logins!');",
+									"",
+									"// This is just an informational request",
+									"pm.execution.skipRequest();"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/info",
+							"host": ["{{base_url}}"],
+							"path": ["info"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
+

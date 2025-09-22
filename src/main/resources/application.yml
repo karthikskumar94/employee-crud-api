@@ -4,7 +4,12 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password: password
-  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          secret: mysupersecretkey1234567890mysupersecretkey1234567890
+
   h2:
     console:
       enabled: true
@@ -21,6 +26,9 @@ spring:
 
 server:
   port: 8080
+
+jwt:
+  secret: mysupersecretkey1234567890mysupersecretkey1234567890
 
 logging:
   level:

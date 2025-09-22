@@ -1,6 +1,8 @@
 package com.example.employeeapi.controller;
 
+import com.example.employeeapi.annotation.RequireRole;
 import com.example.employeeapi.entity.Employee;
+import com.example.employeeapi.enums.Role;
 import com.example.employeeapi.service.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,7 @@ public class EmployeeController {
 
     // Create a new employee
     @PostMapping
+    @RequireRole({Role.ADMIN, Role.HR})
     public ResponseEntity<?> createEmployee(@Valid @RequestBody Employee employee) {
         try {
             Employee savedEmployee = employeeService.createEmployee(employee);
@@ -36,6 +39,7 @@ public class EmployeeController {
 
     // Get all employees
     @GetMapping
+    @RequireRole({Role.ADMIN, Role.HR, Role.MANAGER})
     public ResponseEntity<List<Employee>> getAllEmployees() {
         List<Employee> employees = employeeService.getAllEmployees();
         return new ResponseEntity<>(employees, HttpStatus.OK);
@@ -43,6 +47,7 @@ public class EmployeeController {
 
     // Get employee by ID
     @GetMapping("/{id}")
+    @RequireRole({Role.ADMIN, Role.HR, Role.MANAGER, Role.EMPLOYEE})
     public ResponseEntity<?> getEmployeeById(@PathVariable Long id) {
         Optional<Employee> employee = employeeService.getEmployeeById(id);
         if (employee.isPresent()) {
@@ -56,6 +61,7 @@ public class EmployeeController {
 
     // Get employee by email
     @GetMapping("/email/{email}")
+    @RequireRole({Role.ADMIN, Role.HR, Role.MANAGER})
     public ResponseEntity<?> getEmployeeByEmail(@PathVariable String email) {
         Optional<Employee> employee = employeeService.getEmployeeByEmail(email);
         if (employee.isPresent()) {
@@ -69,6 +75,7 @@ public class EmployeeController {
 
     // Get employees by department
     @GetMapping("/department/{department}")
+    @RequireRole({Role.ADMIN, Role.HR, Role.MANAGER})
     public ResponseEntity<List<Employee>> getEmployeesByDepartment(@PathVariable String department) {
         List<Employee> employees = employeeService.getEmployeesByDepartment(department);
         return new ResponseEntity<>(employees, HttpStatus.OK);
@@ -76,6 +83,7 @@ public class EmployeeController {
 
     // Search employees by name
     @GetMapping("/search")
+    @RequireRole({Role.ADMIN, Role.HR, Role.MANAGER})
     public ResponseEntity<List<Employee>> searchEmployeesByName(@RequestParam String name) {
         List<Employee> employees = employeeService.searchEmployeesByName(name);
         return new ResponseEntity<>(employees, HttpStatus.OK);
@@ -83,6 +91,7 @@ public class EmployeeController {
 
     // Update employee
     @PutMapping("/{id}")
+    @RequireRole({Role.ADMIN, Role.HR})
     public ResponseEntity<?> updateEmployee(@PathVariable Long id, @Valid @RequestBody Employee employeeDetails) {
         try {
             Employee updatedEmployee = employeeService.updateEmployee(id, employeeDetails);
@@ -100,6 +109,7 @@ public class EmployeeController {
 
     // Delete employee
     @DeleteMapping("/{id}")
+    @RequireRole(Role.ADMIN) // Only admin can delete employees
     public ResponseEntity<?> deleteEmployee(@PathVariable Long id) {
         boolean deleted = employeeService.deleteEmployee(id);
         if (deleted) {
@@ -115,6 +125,7 @@ public class EmployeeController {
 
     // Get employee count
     @GetMapping("/count")
+    @RequireRole({Role.ADMIN, Role.HR})
     public ResponseEntity<Map<String, Long>> getEmployeeCount() {
         long count = employeeService.getTotalEmployeeCount();
         Map<String, Long> response = new HashMap<>();
@@ -124,6 +135,7 @@ public class EmployeeController {
 
     // Health check endpoint
     @GetMapping("/health")
+    @RequireRole({Role.ADMIN, Role.HR, Role.MANAGER, Role.EMPLOYEE}) // All authenticated users can check health
     public ResponseEntity<Map<String, String>> healthCheck() {
         Map<String, String> response = new HashMap<>();
         response.put("status", "UP");
