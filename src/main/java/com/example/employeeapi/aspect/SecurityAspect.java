@@ -200,7 +200,7 @@ public class SecurityAspect {
 
             auditLogRepository.save(log);
 
-            logger.info("✅ Audit log created for {} on {} by user: {}", action, entity.getClass().getSimpleName(), finalUsername);
+            logger.info("Audit log created for {} on {} by user: {}", action, entity.getClass().getSimpleName(), finalUsername);
 
         } catch (Exception e) {
             logger.error("Failed to log transaction", e);
