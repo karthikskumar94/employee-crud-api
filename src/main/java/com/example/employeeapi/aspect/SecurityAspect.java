@@ -1,17 +1,26 @@
 package com.example.employeeapi.aspect;
 
 import com.example.employeeapi.annotation.RequireRole;
+import com.example.employeeapi.entity.AuditLog;
+//import com.example.employeeapi.entity.User;
+import com.example.employeeapi.entity.User;
 import com.example.employeeapi.enums.Role;
+import com.example.employeeapi.repository.AuditLogRepository;
+import com.example.employeeapi.repository.UserRepository;
 import com.example.employeeapi.security.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -19,7 +28,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
+
 
 /**
  * Spring AOP Aspect for role-based security authorization
@@ -32,7 +43,17 @@ public class SecurityAspect {
     private static final Logger logger = LoggerFactory.getLogger(SecurityAspect.class);
 
     @Autowired
+    private AuditLogRepository auditLogRepository;
+
+    @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    // Pointcut for any save/update in service layer
+    @Pointcut("execution(* com.example.employeeapi.controller.*.createEmployee*(..)) || execution(* com.example.employeeapi.service.*.updateEmployee*(..)) || execution(* com.example.employeeapi.service.*.deleteEmployee*(..))")
+    public void transactionMethods() {}
 
     /**
      * Before advice that runs before any method annotated with @RequireRole
@@ -137,4 +158,56 @@ public class SecurityAspect {
         Class<?> targetClass = joinPoint.getTarget().getClass();
         return targetClass.getAnnotation(RequireRole.class);
     }
+
+    @AfterReturning(value = "transactionMethods()", returning = "result")
+    public void logTransaction(JoinPoint joinPoint, Object result) {
+        try {
+            String methodName = joinPoint.getSignature().getName();
+            //String action = methodName.startsWith("createEmployee") ? "CREATE" : "UPDATE";
+            String action;
+            if (methodName.startsWith("deleteEmployee")) {
+                action = "DELETE";
+            } else if (methodName.startsWith("createEmployee")) {
+                action = "CREATE";
+            } else {
+                action = "UPDATE";
+            }
+
+            Object entity = joinPoint.getArgs()[0]; // assuming first arg is entity
+            Long entityId = null;
+
+            // if entity has getId() method
+            try {
+                entityId = (Long) entity.getClass().getMethod("getId").invoke(entity);
+            } catch (Exception ignored) {}
+
+
+            String username = "system";
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated()) {
+                username = auth.getName();
+            }
+
+            // 🔹 Use UserRepository to verify or enrich user info
+            Optional<User> userOpt = userRepository.findByUsername(username);
+            String finalUsername = userOpt.map(User::getUsername).orElse("unknown");
+
+            AuditLog log = new AuditLog(
+                    action,
+                    entity.getClass().getSimpleName(),
+                    entityId,
+                    finalUsername
+            );
+
+            auditLogRepository.save(log);
+
+            //logger.info("Audit log created for {} action on {}", action, entity.getClass().getSimpleName());
+            logger.info("✅ Audit log created for {} on {} by user: {}", action, entity.getClass().getSimpleName(), finalUsername);
+
+        } catch (Exception e) {
+            logger.error("Failed to log transaction", e);
+        }
+    }
+
+
 }
