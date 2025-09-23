@@ -2,7 +2,6 @@ package com.example.employeeapi.aspect;
 
 import com.example.employeeapi.annotation.RequireRole;
 import com.example.employeeapi.entity.AuditLog;
-//import com.example.employeeapi.entity.User;
 import com.example.employeeapi.entity.User;
 import com.example.employeeapi.enums.Role;
 import com.example.employeeapi.repository.AuditLogRepository;
@@ -201,7 +200,6 @@ public class SecurityAspect {
 
             auditLogRepository.save(log);
 
-            //logger.info("Audit log created for {} action on {}", action, entity.getClass().getSimpleName());
             logger.info("✅ Audit log created for {} on {} by user: {}", action, entity.getClass().getSimpleName(), finalUsername);
 
         } catch (Exception e) {
